@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ora solare vera, media e civile</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f5f7fb;color:#1e293b;margin:0;padding:24px}
+    .box{max-width:980px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 28px rgba(0,0,0,.08)}
+    h1{margin:0 0 8px;font-size:2rem}
+    h2{margin-top:28px}
+    p,li{line-height:1.55}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:18px 0}
+    label{display:block;font-weight:700;margin-bottom:6px}
+    input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem;box-sizing:border-box}
+    button{padding:12px 18px;border:0;border-radius:10px;background:#0284c7;color:#fff;font-weight:700;cursor:pointer}
+    button.secondary{background:#64748b}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 16px}
+    .result{margin-top:18px;padding:16px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe}
+    .warn{background:#fff7ed;border-color:#fdba74}
+    .small{font-size:.95rem;color:#475569}
+    code,.formula{background:#f1f5f9;padding:2px 6px;border-radius:6px}
+    .formula-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin:10px 0;overflow:auto}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid #e2e8f0;padding:10px;text-align:left;vertical-align:top}
+    th{background:#f8fafc}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Ora solare vera, media e civile</h1>
+    <p>Calcolo immediato a partire da <strong>azimut</strong> e <strong>altezza del Sole</strong>. La pagina lascia di default la <strong>latitudine 41°</strong>, ma puoi modificarla anche di pochi decimi. Accetta sia <strong>virgola</strong> sia <strong>punto</strong> nei decimali.</p>
+    <p class="small">Azimut misurato da nord in senso orario: 90° = Est, 180° = Sud, 270° = Ovest.</p>
+
+    <div class="grid">
+      <div>
+        <label for="date">Data</label>
+        <input id="date" type="date" />
+      </div>
+      <div>
+        <label for="lat">Latitudine (°)</label>
+        <input id="lat" type="text" inputmode="decimal" value="41.0" />
+      </div>
+      <div>
+        <label for="lon">Longitudine locale Est (°)</label>
+        <input id="lon" type="text" inputmode="decimal" value="15.65" />
+      </div>
+      <div>
+        <label for="az">Azimut del Sole (°)</label>
+        <input id="az" type="text" inputmode="decimal" placeholder="es. 271,29 oppure 271.29" />
+      </div>
+      <div>
+        <label for="alt">Altezza del Sole (°)</label>
+        <input id="alt" type="text" inputmode="decimal" placeholder="es. 18,31 oppure 18.31" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="calc">Calcola</button>
+      <button class="secondary" id="today">Data di oggi</button>
+      <button class="secondary" id="lat41">Latitudine 41°</button>
+      <button class="secondary" id="reggio">Reggio Calabria</button>
+    </div>
+
+    <div id="out" class="result">Inserire i valori e premere <strong>Calcola</strong>.</div>
+
+    <h2>Formule usate</h2>
+    <p>Le formule della declinazione solare e dell’equazione del tempo seguono le approssimazioni NOAA in funzione dell’anno frazionario amma.[web:4][web:275]</p>
+
+    <div class="formula-block">
+      <div class="formula">γ = \(\frac{2\pi}{365}(n-1)\)</div><br>
+      <div class="formula">eqtime = \(229.18\,[0.000075 + 0.001868\cos\gamma - 0.032077\sin\gamma - 0.014615\cos(2\gamma) - 0.040849\sin(2\gamma)]\)</div><br>
+      <div class="formula">δ = \(0.006918 - 0.399912\cos\gamma + 0.070257\sin\gamma - 0.006758\cos(2\gamma) + 0.000907\sin(2\gamma) - 0.002697\cos(3\gamma) + 0.00148\sin(3\gamma)\)</div>
+    </div>
+
+    <p>Per ricavare l’angolo orario dall’altezza del Sole si usa la relazione di astronomia sferica tra altezza, latitudine, declinazione e angolo orario.[web:14][web:289]</p>
+
+    <div class="formula-block">
+      <div class="formula">\(\cos H = \frac{\sin h - \sin\phi\,\sin\delta}{\cos\phi\,\cos\delta}\)</div><br>
+      <div class="formula">ora solare vera = \(12 + \frac{H}{15}\)</div>
+    </div>
+
+    <p>NOAA esprime il <em>true solar time</em> in minuti con la relazione tra ora civile locale, equazione del tempo, longitudine e fuso orario.[web:4][web:275] Qui la formula è usata anche al contrario per ricavare l’ora civile a partire dall’ora solare vera.[web:277][web:281]</p>
+
+    <div class="formula-block">
+      <div class="formula">time_offset = eqtime + 4·longitudine - 60·timezone</div><br>
+      <div class="formula">TST = minuti_civili + time_offset</div><br>
+      <div class="formula">minuti_civili = TST - eqtime - 4·longitudine + 60·timezone</div>
+    </div>
+
+    <p>La trasformazione tra ora solare vera e ora solare media locale passa per l’equazione del tempo, che misura la differenza tra tempo apparente e tempo medio.[web:273][web:289][web:285]</p>
+
+    <div class="formula-block">
+      <div class="formula">EOT = ora solare vera - ora solare media locale</div><br>
+      <div class="formula">ora solare media locale = ora solare vera - EOT</div>
+    </div>
+
+    <h2>Passaggi del calcolo</h2>
+    <table>
+      <tr><th>Passaggio</th><th>Descrizione</th></tr>
+      <tr><td>1</td><td>Dalla data si ricavano giorno dell’anno, anno frazionario, equazione del tempo e declinazione solare.[web:4][web:275]</td></tr>
+      <tr><td>2</td><td>Da altezza, latitudine e declinazione si calcola l’angolo orario del Sole.[web:14][web:289]</td></tr>
+      <tr><td>3</td><td>Dall’angolo orario si ricava l’ora solare vera, cioè l’ora della meridiana.[web:273][web:289]</td></tr>
+      <tr><td>4</td><td>Sottraendo l’equazione del tempo si ottiene l’ora solare media locale.[web:273][web:285]</td></tr>
+      <tr><td>5</td><td>Applicando longitudine, fuso e ora legale si ottiene l’ora civile dell’orologio.[web:277][web:281]</td></tr>
+    </table>
+  </div>
+
+<script>
+function pad(n){return String(n).padStart(2,'0');}
+function parseIt(v){return parseFloat(String(v).replace(',', '.'));}
+function dayOfYear(d){const start=new Date(d.getFullYear(),0,0); return Math.floor((d-start)/86400000);}
+function isDSTItaly(d){
+  const y=d.getFullYear();
+  const lastSunday=(month)=>{const x=new Date(y, month+1, 0); const dow=x.getDay(); x.setDate(x.getDate()-dow); return x;};
+  const start=lastSunday(2); start.setHours(2,0,0,0);
+  const end=lastSunday(9); end.setHours(3,0,0,0);
+  return d>=start && d<end;
+}
+function fracYear(n){return 2*Math.PI/365*(n-1);}
+function eqTimeDecl(n){
+  const g=fracYear(n);
+  const eq=229.18*(0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g) - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g));
+  const dec=0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g) - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g) - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+  return {g, eq, dec};
+}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function toHM(mins){ mins=((mins%1440)+1440)%1440; let h=Math.floor(mins/60); let m=Math.round(mins%60); if(m===60){m=0;h=(h+1)%24;} return pad(h)+':'+pad(m); }
+
+document.getElementById('today').onclick=()=>{ const d=new Date(); document.getElementById('date').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+document.getElementById('today').click();
+document.getElementById('lat41').onclick=()=>document.getElementById('lat').value='41.0';
+document.getElementById('reggio').onclick=()=>{document.getElementById('lat').value='38.11';document.getElementById('lon').value='15.65';};
+
+document.getElementById('calc').onclick=()=>{
+  const az=parseIt(document.getElementById('az').value);
+  const alt=parseIt(document.getElementById('alt').value);
+  const lon=parseIt(document.getElementById('lon').value);
+  const lat=parseIt(document.getElementById('lat').value);
+  const ds=document.getElementById('date').value;
+  const out=document.getElementById('out');
+  if(!ds || isNaN(az) || isNaN(alt) || isNaN(lon) || isNaN(lat)){
+    out.className='result warn';
+    out.innerHTML='Compilare <strong>data</strong>, <strong>latitudine</strong>, <strong>longitudine</strong>, <strong>azimut</strong> e <strong>altezza</strong>.';
+    return;
+  }
+  const d=new Date(ds+'T12:00:00');
+  const n=dayOfYear(d);
+  const {g, eq, dec}=eqTimeDecl(n);
+  const h=alt*Math.PI/180;
+  const phi=lat*Math.PI/180;
+  const cosH=(Math.sin(h)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+  if(cosH<-1 || cosH>1){
+    out.className='result warn';
+    out.innerHTML='Con questi valori non si ottiene una soluzione reale. Controllare i dati inseriti.';
+    return;
+  }
+  const Habs=Math.acos(clamp(cosH,-1,1))*180/Math.PI;
+  const sign=(az>=180)?1:-1;
+  const H=sign*Habs;
+  const tst=720 + 4*H;
+  const lmt=tst - eq;
+  const tz=isDSTItaly(d)?2:1;
+  const civil=tst - eq - 4*lon + 60*tz;
+  out.className='result';
+  out.innerHTML=`
+    <p><strong>Ora solare vera:</strong> ${toHM(tst)}</p>
+    <p><strong>Ora solare media locale:</strong> ${toHM(lmt)}</p>
+    <p><strong>Ora civile locale:</strong> ${toHM(civil)} ${tz===2?'(CEST, ora legale)':'(CET, ora standard)'}</p>
+    <hr>
+    <p><strong>Valori intermedi:</strong></p>
+    <p class="small">giorno dell'anno n = ${n}; γ = ${g.toFixed(6)} rad; declinazione δ = ${(dec*180/Math.PI).toFixed(3)}°; equazione del tempo = ${eq.toFixed(2)} min.</p>
+    <p class="small">latitudine φ = ${lat.toFixed(3)}°; longitudine λ = ${lon.toFixed(3)}° E; angolo orario H = ${H.toFixed(3)}°.</p>
+    <p class="small">Calcoli numerici: TST = 720 + 4·H = ${tst.toFixed(2)} min; LMT = TST - EOT = ${lmt.toFixed(2)} min; ora civile = TST - EOT - 4·λ + 60·timezone = ${civil.toFixed(2)} min.</p>
+  `;
+};
+</script>
+</body>
+</html>
